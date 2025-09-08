@@ -1,0 +1,31 @@
+{
+  "name": "optics-color-tokens",
+  "version": "1.0.0",
+  "description": "Auto-generating Optics Design System color tokens from HSL values",
+  "main": "generate-tokens.js",
+  "scripts": {
+    "generate": "node generate-tokens.js",
+    "start": "node generate-tokens.js",
+    "dev": "node generate-tokens.js"
+  },
+  "keywords": [
+    "design-system",
+    "color-tokens",
+    "optics",
+    "figma",
+    "tokens",
+    "hsl",
+    "css-variables"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "files": [
+    "generate-tokens.js",
+    "auto-generate.html",
+    "index.html",
+    "export.json"
+  ],
+  "engines": {
+    "node": ">=14"
+  }
+}
