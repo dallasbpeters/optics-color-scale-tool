@@ -1,115 +1,115 @@
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Optics Color Tokens</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@rolemodel/optics@latest/dist/css/optics.min.css"
-    />
-    <link rel="stylesheet" href="/styles.css" />
 
-    <style>
-      :root {
-        /**
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Optics Color Tokens</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rolemodel/optics@latest/dist/css/optics.min.css" />
+  <link rel="stylesheet" href="/styles.css" />
+
+  <style>
+    :root {
+      /**
         * Adjust these...
         **/
-        --op-color-primary-h: 190;
-        --op-color-primary-s: 58%;
-        --op-color-primary-l: 48%;
+      --op-color-primary-h: 210;
+      --op-color-primary-s: 48%;
+      --op-color-primary-l: 38%;
 
-        --op-color-neutral-h: var(--op-color-primary-h);
-        --op-color-neutral-s: 3%;
-        --op-color-neutral-l: var(--op-color-primary-l);
+      --op-color-neutral-h: var(--op-color-primary-h);
+      --op-color-neutral-s: 3%;
+      --op-color-neutral-l: var(--op-color-primary-l);
 
-        --op-color-alerts-warning-h: 50;
-        --op-color-alerts-warning-s: 100%;
-        --op-color-alerts-warning-l: 61%;
+      --op-color-alerts-warning-h: 50;
+      --op-color-alerts-warning-s: 100%;
+      --op-color-alerts-warning-l: 61%;
 
-        --op-color-alerts-danger-h: 0;
-        --op-color-alerts-danger-s: 99%;
-        --op-color-alerts-danger-l: 76%;
+      --op-color-alerts-danger-h: 0;
+      --op-color-alerts-danger-s: 99%;
+      --op-color-alerts-danger-l: 76%;
 
-        --op-color-alerts-info-h: 216;
-        --op-color-alerts-info-s: 58%;
-        --op-color-alerts-info-l: 48%;
+      --op-color-alerts-info-h: 216;
+      --op-color-alerts-info-s: 58%;
+      --op-color-alerts-info-l: 48%;
 
-        --op-color-alerts-notice-h: 130;
-        --op-color-alerts-notice-s: 61%;
-        --op-color-alerts-notice-l: 64%;
-      }
-    </style>
-  </head>
+      --op-color-alerts-notice-h: 130;
+      --op-color-alerts-notice-s: 61%;
+      --op-color-alerts-notice-l: 64%;
+    }
+  </style>
+</head>
 
-  <body>
-    <h1>Optics Design System - Color Tokens Grid</h1>
+<body>
+  <h1>Optics Design System - Color Tokens Grid</h1>
 
-    <!-- Primary Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="primary-grid">
-        <!-- Primary colors will be inserted here -->
-      </div>
+  <!-- Primary Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Primary Scale</h2>
+    <div class="color-grid" id="primary-grid">
+      <!-- Primary colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Neutral Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="neutral-grid">
-        <!-- Neutral colors will be inserted here -->
-      </div>
+  <!-- Neutral Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Neutral Scale</h2>
+    <div class="color-grid" id="neutral-grid">
+      <!-- Neutral colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Warning Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="warning-grid">
-        <!-- Warning colors will be inserted here -->
-      </div>
+  <!-- Warning Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Warning Scale</h2>
+    <div class="color-grid" id="warning-grid">
+      <!-- Warning colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Danger Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="danger-grid">
-        <!-- Danger colors will be inserted here -->
-      </div>
+  <!-- Danger Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Danger Scale</h2>
+    <div class="color-grid" id="danger-grid">
+      <!-- Danger colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Info Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="info-grid">
-        <!-- Info colors will be inserted here -->
-      </div>
+  <!-- Info Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Info Scale</h2>
+    <div class="color-grid" id="info-grid">
+      <!-- Info colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Notice Scale -->
-    <div class="color-scale-section">
-      <div class="color-grid" id="notice-grid">
-        <!-- Notice colors will be inserted here -->
-      </div>
+  <!-- Notice Scale -->
+  <div class="color-scale-section">
+    <h2 class="scale-title">Notice Scale</h2>
+    <div class="color-grid" id="notice-grid">
+      <!-- Notice colors will be inserted here -->
     </div>
+  </div>
 
-    <!-- Generated Color Variables Section -->
-    <div class="variables-section">
-      <h2>Generated Color Variables</h2>
-      <p>
-        Copy these variables to use in your CSS. They update automatically when
-        you change the H, S, L values above.
-      </p>
-      <div class="variables-container">
-        <button class="copy-button" onclick="copyVariables()">
-          Copy All Variables
-        </button>
-        <button
-          class="copy-button"
-          onclick="generateAndDownloadJSON()"
-          style="right: 160px"
-        >
-          Download JSON
-        </button>
-        <pre id="color-variables-output" class="variables-output">
-Generating variables...</pre
-        >
-      </div>
+  <!-- Generated Color Variables Section -->
+  <div class="variables-section">
+    <h2>Generated Color Variables</h2>
+    <p>
+      Copy these variables to use in your CSS. They update automatically when
+      you change the H, S, L values above.
+    </p>
+    <div class="variables-container">
+      <button class="copy-button" onclick="copyVariables()">
+        Copy All Variables
+      </button>
+      <button class="copy-button" onclick="generateAndDownloadJSON()" style="right: 160px">
+        Download JSON
+      </button>
+      <pre id="color-variables-output" class="variables-output">
+Generating variables...</pre>
     </div>
+  </div>
 
-    <script src="/index.js"></script>
-  </body>
+  <script src="/index.js"></script>
+</body>
+
 </html>

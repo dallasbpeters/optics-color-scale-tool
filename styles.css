@@ -3,7 +3,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
     sans-serif;
   margin: 0;
   padding: var(--op-space-medium);
@@ -47,7 +47,6 @@ h1 {
 }
 
 .swatch-main {
-  flex: 1;
   padding: var(--op-space-medium);
   display: flex;
   flex-direction: column;
@@ -73,6 +72,57 @@ h1 {
   font-size: var(--op-font-small);
   margin: var(--op-space-3x-small) 0;
   opacity: 0.8;
+}
+
+.accessibility-indicators {
+  display: flex;
+  justify-content: stretch;
+  border-radius: 0 0 var(--op-radius-large) var(--op-radius-large);
+  margin-left: -1px;
+  margin-right: -1px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.accessibility-indicator {
+  font-size: var(--op-font-2x-small);
+  font-weight: var(--op-font-weight-bold);
+  padding: var(--op-space-2x-small) var(--op-space-2x-small);
+  border-radius: var(--op-radius-x-small);
+  min-width: 60px;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+}
+
+/* Accessibility level colors */
+.accessibility-indicator.level-aaa {
+  background-color: #28a745;
+  color: white;
+}
+
+.accessibility-indicator.level-aa {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.accessibility-indicator.level-fail {
+  background-color: #dc3545;
+  color: white;
+}
+
+.on-indicator {
+  font-size: var(--op-font-2x-small);
+}
+
+.alt-indicator {
+  font-size: var(--op-font-2x-small);
+  opacity: 0.9;
 }
 
 .color-info {
@@ -125,7 +175,7 @@ h1 {
   border: 1px solid var(--op-color-border);
   padding: var(--op-space-medium);
   border-radius: var(--op-space-x-small);
-  font-family: "Monaco", "Consolas", monospace;
+  font-family: 'Monaco', 'Consolas', monospace;
   font-size: var(--op-font-x-small);
   line-height: var(--op-line-height-loose);
   max-height: 400px;

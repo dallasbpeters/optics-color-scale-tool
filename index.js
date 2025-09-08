@@ -88,6 +88,235 @@ function rgbToHex(rgb) {
   );
 }
 
+// Convert hex to RGB
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+// Calculate relative luminance
+function getRelativeLuminance(r, g, b) {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+// Calculate contrast ratio between two colors
+function getContrastRatio(color1, color2) {
+  const rgb1 = typeof color1 === 'string' ? hexToRgb(color1) : color1;
+  const rgb2 = typeof color2 === 'string' ? hexToRgb(color2) : color2;
+
+  if (!rgb1 || !rgb2) return 1;
+
+  const lum1 = getRelativeLuminance(rgb1.r, rgb1.g, rgb1.b);
+  const lum2 = getRelativeLuminance(rgb2.r, rgb2.g, rgb2.b);
+
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Get accessibility level based on contrast ratio
+function getAccessibilityLevel(ratio, isLargeText = false) {
+  if (isLargeText) {
+    if (ratio >= 4.5) return 'AAA';
+    if (ratio >= 3) return 'AA';
+  } else {
+    if (ratio >= 7) return 'AAA';
+    if (ratio >= 4.5) return 'AA';
+  }
+  return 'FAIL';
+}
+
+// Get computed color value from CSS variable
+function getComputedColor(varName) {
+  const computedStyle = getComputedStyle(document.documentElement);
+  const color = computedStyle.getPropertyValue(varName).trim();
+  return color;
+}
+
+// Generate all color variables using light-dark() with HSL values
+function generateAllColorVariables() {
+  const style = document.createElement("style");
+  let css = ":root {\n";
+
+  // Lightness values for light mode
+  const lightMode = {
+    bg: {
+      "original": 40,
+      "plus-max": 100,
+      "plus-eight": 98,
+      "plus-seven": 96,
+      "plus-six": 94,
+      "plus-five": 90,
+      "plus-four": 84,
+      "plus-three": 70,
+      "plus-two": 64,
+      "plus-one": 45,
+      "base": 40,
+      "minus-one": 36,
+      "minus-two": 32,
+      "minus-three": 28,
+      "minus-four": 24,
+      "minus-five": 20,
+      "minus-six": 16,
+      "minus-seven": 8,
+      "minus-eight": 4,
+      "minus-max": 0,
+    },
+    on: {
+      "original": 100,
+      "plus-max": 0,
+      "plus-eight": 4,
+      "plus-seven": 8,
+      "plus-six": 16,
+      "plus-five": 20,
+      "plus-four": 24,
+      "plus-three": 20,
+      "plus-two": 16,
+      "plus-one": 100,
+      "base": 100,
+      "minus-one": 94,
+      "minus-two": 90,
+      "minus-three": 86,
+      "minus-four": 84,
+      "minus-five": 88,
+      "minus-six": 94,
+      "minus-seven": 96,
+      "minus-eight": 98,
+      "minus-max": 100,
+    },
+    onAlt: {
+      "original": 88,
+      "plus-max": 20,
+      "plus-eight": 24,
+      "plus-seven": 28,
+      "plus-six": 26,
+      "plus-five": 40,
+      "plus-four": 4,
+      "plus-three": 10,
+      "plus-two": 6,
+      "plus-one": 95,
+      "base": 88,
+      "minus-one": 82,
+      "minus-two": 78,
+      "minus-three": 74,
+      "minus-four": 72,
+      "minus-five": 78,
+      "minus-six": 82,
+      "minus-seven": 84,
+      "minus-eight": 86,
+      "minus-max": 88,
+    }
+  };
+
+  // Lightness values for dark mode
+  const darkMode = {
+    bg: {
+      "original": 60,
+      "plus-max": 12,
+      "plus-eight": 14,
+      "plus-seven": 16,
+      "plus-six": 20,
+      "plus-five": 24,
+      "plus-four": 26,
+      "plus-three": 29,
+      "plus-two": 32,
+      "plus-one": 35,
+      "base": 38,
+      "minus-one": 40,
+      "minus-two": 45,
+      "minus-three": 48,
+      "minus-four": 52,
+      "minus-five": 64,
+      "minus-six": 72,
+      "minus-seven": 80,
+      "minus-eight": 88,
+      "minus-max": 100,
+    },
+    on: {
+      "original": 100,
+      "plus-max": 100,
+      "plus-eight": 88,
+      "plus-seven": 80,
+      "plus-six": 72,
+      "plus-five": 72,
+      "plus-four": 80,
+      "plus-three": 78,
+      "plus-two": 80,
+      "plus-one": 80,
+      "base": 100,
+      "minus-one": 98,
+      "minus-two": 98,
+      "minus-three": 98,
+      "minus-four": 2,
+      "minus-five": 2,
+      "minus-six": 8,
+      "minus-seven": 8,
+      "minus-eight": 4,
+      "minus-max": 0,
+    },
+    onAlt: {
+      "original": 84,
+      "plus-max": 78,
+      "plus-eight": 70,
+      "plus-seven": 64,
+      "plus-six": 96,
+      "plus-five": 86,
+      "plus-four": 92,
+      "plus-three": 98,
+      "plus-two": 92,
+      "plus-one": 98,
+      "base": 84,
+      "minus-one": 90,
+      "minus-two": 92,
+      "minus-three": 96,
+      "minus-four": 2,
+      "minus-five": 20,
+      "minus-six": 26,
+      "minus-seven": 34,
+      "minus-eight": 38,
+      "minus-max": 38,
+    }
+  };
+
+  Object.values(colorScales).forEach((scale) => {
+    colorSteps.forEach((step) => {
+      // Generate background color using light-dark()
+      css += `  --op-color-${scale.prefix}-${step}: light-dark(\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${lightMode.bg[step]}%),\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${darkMode.bg[step]}%)\n`;
+      css += `  );\n`;
+
+      // Generate on color using light-dark()
+      css += `  --op-color-${scale.prefix}-on-${step}: light-dark(\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${lightMode.on[step]}%),\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${darkMode.on[step]}%)\n`;
+      css += `  );\n`;
+
+      // Generate on-alt color using light-dark()
+      css += `  --op-color-${scale.prefix}-on-${step}-alt: light-dark(\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${lightMode.onAlt[step]}%),\n`;
+      css += `    hsl(var(--op-color-${scale.prefix}-h) var(--op-color-${scale.prefix}-s) ${darkMode.onAlt[step]}%)\n`;
+      css += `  );\n`;
+    });
+  });
+
+  css += "}\n";
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+// Get Optics color for a specific scale and step
+// Removed - using light-dark() in CSS instead
+
 // Generate CSS classes dynamically
 function generateColorClasses() {
   const style = document.createElement("style");
@@ -121,9 +350,8 @@ function createColorSwatch(scale, step) {
   const colorClassName = `${scale.prefix}-${step}`;
 
   const swatch = document.createElement("div");
-  swatch.className = `color-swatch ${colorClassName} ${
-    isOriginal ? "original-color" : ""
-  } ${isBase ? "base-color" : ""}`;
+  swatch.className = `color-swatch ${colorClassName} ${isOriginal ? "original-color" : ""
+    } ${isBase ? "base-color" : ""}`;
 
   const main = document.createElement("div");
   main.className = "swatch-main";
@@ -142,7 +370,31 @@ function createColorSwatch(scale, step) {
   altText.textContent = "Alt Text";
   main.appendChild(altText);
 
-  swatch.appendChild(main);
+  swatch.append(main);
+
+  // Only add accessibility indicators for non-original steps
+  if (step !== "original") {
+    // Add accessibility indicators
+    const accessibilityContainer = document.createElement("div");
+    accessibilityContainer.className = "accessibility-indicators";
+
+    const onIndicator = document.createElement("div");
+    onIndicator.className = "accessibility-indicator on-indicator";
+    onIndicator.setAttribute("data-step", step);
+    onIndicator.setAttribute("data-scale", scale.prefix);
+    onIndicator.setAttribute("data-type", "on");
+
+    const altIndicator = document.createElement("div");
+    altIndicator.className = "accessibility-indicator alt-indicator";
+    altIndicator.setAttribute("data-step", step);
+    altIndicator.setAttribute("data-scale", scale.prefix);
+    altIndicator.setAttribute("data-type", "alt");
+
+    accessibilityContainer.append(onIndicator);
+    accessibilityContainer.append(altIndicator);
+
+    swatch.append(accessibilityContainer);
+  }
 
   return swatch;
 }
@@ -153,14 +405,119 @@ function populateColorGrid(scaleKey) {
 
   // Add all color steps
   colorSteps.forEach((step) => {
-    grid.appendChild(createColorSwatch(scale, step));
+    const swatch = createColorSwatch(scale, step);
+    // Clear the swatch name (remove the text I added)
+    const nameElement = swatch.querySelector('.swatch-name');
+    if (nameElement) {
+      nameElement.textContent = '';
+    }
+
+    // Update the text labels to show CSS variable names (skip for original)
+    const onText = swatch.querySelector('.swatch-on-text');
+    const altText = swatch.querySelector('.swatch-alt-text');
+
+    if (onText && altText) {
+      if (step === 'original') {
+        // Don't show text labels for original step
+        onText.textContent = '';
+        altText.textContent = '';
+      } else {
+        const stepName = step.replace('-', '').replace(/\b\w/g, l => l.toUpperCase());
+        onText.textContent = `On${stepName}`;
+        altText.textContent = `On${stepName}Alt`;
+      }
+    }
+
+    grid.appendChild(swatch);
+  });
+}
+
+// Update accessibility indicators for a specific scale and step
+// Removed duplicate function - using the one below
+
+// Update accessibility indicators for a specific scale and step
+function updateAccessibilityIndicators(scalePrefix, step) {
+  try {
+    // Calculate colors directly based on current color scheme
+    const scaleHSL = getScaleHSL(scalePrefix);
+
+    // Detect if user prefers dark mode
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Use appropriate lightness values based on color scheme
+    const mode = prefersDark ? 'dark' : 'light';
+
+    const lightMode = {
+      bg: { "original": 40, "plus-max": 100, "plus-eight": 98, "plus-seven": 96, "plus-six": 94, "plus-five": 90, "plus-four": 84, "plus-three": 70, "plus-two": 64, "plus-one": 45, "base": 40, "minus-one": 36, "minus-two": 32, "minus-three": 28, "minus-four": 24, "minus-five": 20, "minus-six": 16, "minus-seven": 8, "minus-eight": 4, "minus-max": 0 },
+      on: { "original": 100, "plus-max": 0, "plus-eight": 4, "plus-seven": 8, "plus-six": 16, "plus-five": 20, "plus-four": 24, "plus-three": 20, "plus-two": 16, "plus-one": 100, "base": 100, "minus-one": 94, "minus-two": 90, "minus-three": 86, "minus-four": 84, "minus-five": 88, "minus-six": 94, "minus-seven": 96, "minus-eight": 98, "minus-max": 100 },
+      onAlt: { "original": 88, "plus-max": 20, "plus-eight": 24, "plus-seven": 28, "plus-six": 26, "plus-five": 40, "plus-four": 4, "plus-three": 10, "plus-two": 6, "plus-one": 95, "base": 88, "minus-one": 82, "minus-two": 78, "minus-three": 74, "minus-four": 72, "minus-five": 78, "minus-six": 82, "minus-seven": 84, "minus-eight": 86, "minus-max": 88 }
+    };
+
+    const darkMode = {
+      bg: { "original": 60, "plus-max": 12, "plus-eight": 14, "plus-seven": 16, "plus-six": 20, "plus-five": 24, "plus-four": 26, "plus-three": 29, "plus-two": 32, "plus-one": 35, "base": 38, "minus-one": 40, "minus-two": 45, "minus-three": 48, "minus-four": 52, "minus-five": 64, "minus-six": 72, "minus-seven": 80, "minus-eight": 88, "minus-max": 100 },
+      on: { "original": 100, "plus-max": 100, "plus-eight": 88, "plus-seven": 80, "plus-six": 72, "plus-five": 72, "plus-four": 80, "plus-three": 78, "plus-two": 80, "plus-one": 80, "base": 100, "minus-one": 98, "minus-two": 98, "minus-three": 98, "minus-four": 2, "minus-five": 2, "minus-six": 8, "minus-seven": 8, "minus-eight": 4, "minus-max": 0 },
+      onAlt: { "original": 84, "plus-max": 78, "plus-eight": 70, "plus-seven": 64, "plus-six": 96, "plus-five": 86, "plus-four": 92, "plus-three": 98, "plus-two": 92, "plus-one": 98, "base": 84, "minus-one": 90, "minus-two": 92, "minus-three": 96, "minus-four": 2, "minus-five": 20, "minus-six": 26, "minus-seven": 34, "minus-eight": 38, "minus-max": 38 }
+    };
+
+    const currentMode = prefersDark ? darkMode : lightMode;
+
+    // Calculate actual hex colors
+    const backgroundColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.bg[step]);
+    const onColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.on[step]);
+    const onAltColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.onAlt[step]);
+
+    // Calculate contrast ratios
+    const onContrastRatio = getContrastRatio(onColor, backgroundColor);
+    const altContrastRatio = getContrastRatio(onAltColor, backgroundColor);
+
+    // Get accessibility levels (assuming normal text size)
+    const onLevel = getAccessibilityLevel(onContrastRatio, false);
+    const altLevel = getAccessibilityLevel(altContrastRatio, false);
+
+    // Update indicators
+    const onIndicator = document.querySelector(
+      `.accessibility-indicator[data-scale="${scalePrefix}"][data-step="${step}"][data-type="on"]`
+    );
+    const altIndicator = document.querySelector(
+      `.accessibility-indicator[data-scale="${scalePrefix}"][data-step="${step}"][data-type="alt"]`
+    );
+
+    if (onIndicator) {
+      onIndicator.textContent = `${onLevel} (${onContrastRatio.toFixed(2)}:1)`;
+      onIndicator.className = `accessibility-indicator on-indicator level-${onLevel.toLowerCase()}`;
+    }
+
+    if (altIndicator) {
+      altIndicator.textContent = `${altLevel} (${altContrastRatio.toFixed(2)}:1)`;
+      altIndicator.className = `accessibility-indicator alt-indicator level-${altLevel.toLowerCase()}`;
+    }
+  } catch (error) {
+    console.warn(`Failed to update accessibility for ${scalePrefix}-${step}:`, error);
+  }
+}
+
+// Update all accessibility indicators
+function updateAllAccessibilityIndicators() {
+  Object.values(colorScales).forEach((scale) => {
+    colorSteps.forEach((step) => {
+      if (step !== "original") { // Skip original step
+        updateAccessibilityIndicators(scale.prefix, step);
+      }
+    });
   });
 }
 
 // Helper functions for Optics contrast calculations
+
+// Convert HSL to hex color
 function hslToHex(h, s, l) {
   const sNorm = s / 100;
   const lNorm = l / 100;
+
+  // Special case: lightness = 0 should always be black
+  if (l === 0) {
+    return '#000000';
+  }
 
   const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
@@ -200,7 +557,7 @@ function hslToHex(h, s, l) {
   g = Math.round((g + m) * 255);
   b = Math.round((b + m) * 255);
 
-  return (
+  const result = (
     "#" +
     [r, g, b]
       .map((x) => {
@@ -209,6 +566,8 @@ function hslToHex(h, s, l) {
       })
       .join("")
   );
+
+  return result;
 }
 
 // Extract lightness from computed RGB
@@ -238,68 +597,7 @@ function getScaleHSL(scalePrefix) {
 }
 
 // Optics on color values based on actual system specifications
-function getOpticsOnColor(scalePrefix, step) {
-  const scaleHSL = getScaleHSL(scalePrefix);
-
-  // Optics on color lightness values (using light mode values)
-  const onLightness = {
-    "plus-max": 0,
-    "plus-eight": 4,
-    "plus-seven": 8,
-    "plus-six": 16,
-    "plus-five": 20,
-    "plus-four": 24,
-    "plus-three": 20,
-    "plus-two": 16,
-    "plus-one": 100,
-    base: 100,
-    "minus-one": 94,
-    "minus-two": 90,
-    "minus-three": 86,
-    "minus-four": 84,
-    "minus-five": 88,
-    "minus-six": 94,
-    "minus-seven": 96,
-    "minus-eight": 98,
-    "minus-max": 100,
-    original: 100, // Default for original
-  };
-
-  const lightness = onLightness[step] || 100;
-  return hslToHex(scaleHSL.h, scaleHSL.s, lightness);
-}
-
-// Optics on-alt color values based on actual system specifications
-function getOpticsOnAltColor(scalePrefix, step) {
-  const scaleHSL = getScaleHSL(scalePrefix);
-
-  // Optics on-alt color lightness values (using light mode values)
-  const onAltLightness = {
-    "plus-max": 20,
-    "plus-eight": 24,
-    "plus-seven": 28,
-    "plus-six": 26,
-    "plus-five": 40,
-    "plus-four": 4,
-    "plus-three": 10,
-    "plus-two": 6,
-    "plus-one": 95,
-    base: 88,
-    "minus-one": 82,
-    "minus-two": 78,
-    "minus-three": 74,
-    "minus-four": 72,
-    "minus-five": 78,
-    "minus-six": 82,
-    "minus-seven": 84,
-    "minus-eight": 86,
-    "minus-max": 88,
-    original: 88, // Default for original
-  };
-
-  const lightness = onAltLightness[step] || 88;
-  return hslToHex(scaleHSL.h, scaleHSL.s, lightness);
-}
+// Removed old color calculation functions - using light-dark() in CSS
 
 // Generate color variables for copying - HSL base values only
 function generateColorVariables() {
@@ -337,8 +635,12 @@ function generateColorVariables() {
 // Watch for changes in root variables
 function watchForVariableChanges() {
   const observer = new MutationObserver(() => {
-    // Regenerate variables when styles change
-    setTimeout(generateColorVariables, 100);
+    // Regenerate variables and update accessibility when styles change
+    setTimeout(() => {
+      generateColorVariables();
+      generateAllColorVariables(); // Regenerate all color variables
+      updateAllAccessibilityIndicators();
+    }, 100);
   });
 
   observer.observe(document.documentElement, {
@@ -360,7 +662,11 @@ function watchForVariableChanges() {
         property.includes("-s") ||
         property.includes("-l"))
     ) {
-      setTimeout(generateColorVariables, 100);
+      setTimeout(() => {
+        generateColorVariables();
+        generateAllColorVariables(); // Regenerate all color variables
+        updateAllAccessibilityIndicators(); // Update accessibility indicators
+      }, 100);
     }
     return result;
   };
@@ -369,10 +675,21 @@ function watchForVariableChanges() {
 // Generate CSS classes first
 generateColorClasses();
 
+// Generate all color variables
+generateAllColorVariables();
+
 // Populate all color grids
 Object.keys(colorScales).forEach((scaleKey) => {
   populateColorGrid(scaleKey);
 });
+
+// Setup variable generation and watching
+setTimeout(() => {
+  generateColorVariables();
+  generateAllColorVariables(); // Ensure all color variables are generated
+  updateAllAccessibilityIndicators(); // Update accessibility indicators
+  watchForVariableChanges();
+}, 500);
 
 // Copy variables function
 function copyVariables() {
@@ -1274,9 +1591,3 @@ function generateAndDownloadJSON() {
     button.style.background = "#007bff";
   }, 2000);
 }
-
-// Setup variable generation and watching
-setTimeout(() => {
-  generateColorVariables();
-  watchForVariableChanges();
-}, 500);
