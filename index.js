@@ -438,8 +438,19 @@ function populateColorGrid(scaleKey) {
 // Update accessibility indicators for a specific scale and step
 function updateAccessibilityIndicators(scalePrefix, step) {
   try {
+    // Skip original step as it doesn't have accessibility indicators
+    if (step === "original") {
+      return;
+    }
+
     // Calculate colors directly based on current color scheme
     const scaleHSL = getScaleHSL(scalePrefix);
+
+    if (!scaleHSL || scaleHSL.h === null || scaleHSL.h === undefined ||
+      scaleHSL.s === null || scaleHSL.s === undefined ||
+      isNaN(scaleHSL.h) || isNaN(scaleHSL.s)) {
+      return;
+    }
 
     // Detect if user prefers dark mode
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -461,10 +472,37 @@ function updateAccessibilityIndicators(scalePrefix, step) {
 
     const currentMode = prefersDark ? darkMode : lightMode;
 
+    // Check if CSS variables have been updated for this specific step
+    const onVarName = `--op-color-${scalePrefix}-on-${step}`;
+    const onAltVarName = `--op-color-${scalePrefix}-on-${step}-alt`;
+
+
+    // Get lightness values (check for updated values first)
+    const onKey = `${scalePrefix}-${step}-on`;
+    const onAltKey = `${scalePrefix}-${step}-alt`;
+
+    let onLightness = currentMode.on[step];
+    let onAltLightness = currentMode.onAlt[step];
+
+    if (onLightness === undefined || onAltLightness === undefined) {
+      return;
+    }
+
+    // Check if we have updated values
+    if (updatedLightnessValues[onKey]) {
+      const updated = updatedLightnessValues[onKey];
+      onLightness = prefersDark ? updated.dark : updated.light;
+    }
+
+    if (updatedLightnessValues[onAltKey]) {
+      const updated = updatedLightnessValues[onAltKey];
+      onAltLightness = prefersDark ? updated.dark : updated.light;
+    }
+
     // Calculate actual hex colors
     const backgroundColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.bg[step]);
-    const onColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.on[step]);
-    const onAltColor = hslToHex(scaleHSL.h, scaleHSL.s, currentMode.onAlt[step]);
+    const onColor = hslToHex(scaleHSL.h, scaleHSL.s, onLightness);
+    const onAltColor = hslToHex(scaleHSL.h, scaleHSL.s, onAltLightness);
 
     // Calculate contrast ratios
     const onContrastRatio = getContrastRatio(onColor, backgroundColor);
@@ -485,14 +523,214 @@ function updateAccessibilityIndicators(scalePrefix, step) {
     if (onIndicator) {
       onIndicator.textContent = `${onLevel} (${onContrastRatio.toFixed(2)}:1)`;
       onIndicator.className = `accessibility-indicator on-indicator level-${onLevel.toLowerCase()}`;
+      onIndicator.style.cursor = 'pointer';
+      onIndicator.onclick = () => fixAccessibility(scalePrefix, step, 'on');
     }
 
     if (altIndicator) {
       altIndicator.textContent = `${altLevel} (${altContrastRatio.toFixed(2)}:1)`;
       altIndicator.className = `accessibility-indicator alt-indicator level-${altLevel.toLowerCase()}`;
+      altIndicator.style.cursor = 'pointer';
+      altIndicator.onclick = () => fixAccessibility(scalePrefix, step, 'alt');
     }
   } catch (error) {
     console.warn(`Failed to update accessibility for ${scalePrefix}-${step}:`, error);
+  }
+}
+
+// Store updated lightness values (light/dark), persist in localStorage
+const STORAGE_KEY = 'opticsLightnessOverrides';
+const updatedLightnessValues = {};
+
+function loadOverridesFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    Object.keys(parsed).forEach((k) => {
+      const v = parsed[k];
+      if (v && typeof v.light === 'number' && typeof v.dark === 'number') {
+        updatedLightnessValues[k] = v;
+      }
+    });
+  } catch (_) { }
+}
+
+function saveOverridesToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLightnessValues));
+  } catch (_) { }
+}
+
+function applyOverridesToCSS() {
+  Object.keys(updatedLightnessValues).forEach((key) => {
+    // key format: `${scalePrefix}-${step}-${type}` where type in ['on','alt']
+    const [scalePrefix, ...rest] = key.split('-');
+    const type = rest.pop();
+    const step = rest.join('-');
+    const override = updatedLightnessValues[key];
+    if (!override) return;
+    const varName = `--op-color-${scalePrefix}-on-${step}${type === 'alt' ? '-alt' : ''}`;
+    const newValue = `light-dark(hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${override.light}%), hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${override.dark}%))`;
+    document.documentElement.style.setProperty(varName, newValue);
+  });
+}
+
+// -------------------------
+// Batched update scheduler
+// -------------------------
+let scheduledFrame = false;
+let needsRegenerateVars = false;
+let needsUpdateIndicators = false;
+
+function scheduleUpdate({ regenerateVars = false, updateIndicators = false } = {}) {
+  needsRegenerateVars = needsRegenerateVars || regenerateVars;
+  needsUpdateIndicators = needsUpdateIndicators || updateIndicators;
+  if (scheduledFrame) return;
+  scheduledFrame = true;
+  requestAnimationFrame(() => {
+    scheduledFrame = false;
+    if (needsRegenerateVars) {
+      // Regenerate, re-apply overrides
+      generateColorVariables();
+      generateAllColorVariables();
+      applyOverridesToCSS();
+      needsRegenerateVars = false;
+    }
+    if (needsUpdateIndicators) {
+      updateAllAccessibilityIndicators();
+      needsUpdateIndicators = false;
+    }
+  });
+}
+
+// Fix accessibility by adjusting text luminosity to pass standards
+function fixAccessibility(scalePrefix, step, type) {
+  try {
+    const scaleHSL = getScaleHSL(scalePrefix);
+    if (!scaleHSL) return;
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Get background lightness for current mode
+    const bgLightness = prefersDark ?
+      { "original": 60, "plus-max": 12, "plus-eight": 14, "plus-seven": 16, "plus-six": 20, "plus-five": 24, "plus-four": 26, "plus-three": 29, "plus-two": 32, "plus-one": 35, "base": 38, "minus-one": 40, "minus-two": 45, "minus-three": 48, "minus-four": 52, "minus-five": 64, "minus-six": 72, "minus-seven": 80, "minus-eight": 88, "minus-max": 100 }[step] :
+      { "original": 40, "plus-max": 100, "plus-eight": 98, "plus-seven": 96, "plus-six": 94, "plus-five": 90, "plus-four": 84, "plus-three": 70, "plus-two": 64, "plus-one": 45, "base": 40, "minus-one": 36, "minus-two": 32, "minus-three": 28, "minus-four": 24, "minus-five": 20, "minus-six": 16, "minus-seven": 8, "minus-eight": 4, "minus-max": 0 }[step];
+
+    // Create background color
+    const bgColor = hslToHex(scaleHSL.h, scaleHSL.s, bgLightness);
+
+    // Determine current text lightness (honor prior updates if any)
+    const bgRgb = hexToRgb(bgColor);
+    if (!bgRgb) return;
+    const targetRatio = 4.5;
+
+    const onKey = `${scalePrefix}-${step}-${type}`;
+
+    const defOnLightLight = { "original": 100, "plus-max": 0, "plus-eight": 4, "plus-seven": 8, "plus-six": 16, "plus-five": 20, "plus-four": 24, "plus-three": 20, "plus-two": 16, "plus-one": 100, "base": 100, "minus-one": 94, "minus-two": 90, "minus-three": 86, "minus-four": 84, "minus-five": 88, "minus-six": 94, "minus-seven": 96, "minus-eight": 98, "minus-max": 100 };
+    const defOnLightDark = { "original": 100, "plus-max": 100, "plus-eight": 88, "plus-seven": 80, "plus-six": 72, "plus-five": 72, "plus-four": 80, "plus-three": 78, "plus-two": 80, "plus-one": 80, "base": 100, "minus-one": 98, "minus-two": 98, "minus-three": 98, "minus-four": 2, "minus-five": 2, "minus-six": 8, "minus-seven": 8, "minus-eight": 4, "minus-max": 0 };
+    const defAltLightLight = { "original": 88, "plus-max": 20, "plus-eight": 24, "plus-seven": 28, "plus-six": 26, "plus-five": 40, "plus-four": 4, "plus-three": 10, "plus-two": 6, "plus-one": 95, "base": 88, "minus-one": 82, "minus-two": 78, "minus-three": 74, "minus-four": 72, "minus-five": 78, "minus-six": 82, "minus-seven": 84, "minus-eight": 86, "minus-max": 88 };
+    const defAltLightDark = { "original": 84, "plus-max": 78, "plus-eight": 70, "plus-seven": 64, "plus-six": 96, "plus-five": 86, "plus-four": 92, "plus-three": 98, "plus-two": 92, "plus-one": 98, "base": 84, "minus-one": 90, "minus-two": 92, "minus-three": 96, "minus-four": 2, "minus-five": 20, "minus-six": 26, "minus-seven": 34, "minus-eight": 38, "minus-max": 38 };
+
+    let currentTextLightness = type === 'alt'
+      ? (prefersDark ? defAltLightDark[step] : defAltLightLight[step])
+      : (prefersDark ? defOnLightDark[step] : defOnLightLight[step]);
+
+    if (updatedLightnessValues[onKey]) {
+      const updated = updatedLightnessValues[onKey];
+      currentTextLightness = prefersDark ? updated.dark : updated.light;
+    }
+
+    const bgHex = bgColor;
+    const currentTextHex = hslToHex(scaleHSL.h, scaleHSL.s, currentTextLightness);
+    const currentRatio = getContrastRatio(currentTextHex, bgHex);
+
+    // If already passing, do nothing
+    if (currentRatio >= targetRatio) {
+      console.log(`Fixed accessibility for ${scalePrefix}-${step}-${type}: ${currentTextLightness}% lightness`);
+      return;
+    }
+
+    const options = [0, 4, 8, 16, 20, 24, 28, 32, 36, 40, 45, 64, 70, 78, 80, 82, 84, 86, 88, 90, 92, 94, 95, 96, 98, 100];
+    const candidates = options.map(L => {
+      const hex = hslToHex(scaleHSL.h, scaleHSL.s, L);
+      return { L, ratio: getContrastRatio(hex, bgHex) };
+    });
+    const passing = candidates.filter(c => c.ratio >= targetRatio);
+
+    let chosen = null;
+    if (passing.length) {
+      chosen = passing.reduce((best, cur) => {
+        const dCur = Math.abs(cur.L - currentTextLightness);
+        if (!best) return cur;
+        const dBest = Math.abs(best.L - currentTextLightness);
+        if (dCur < dBest) return cur;
+        if (dCur > dBest) return best;
+        // tie-breaker: higher ratio
+        return cur.ratio > best.ratio ? cur : best;
+      }, null);
+    } else {
+      // Snap to extreme that gives higher ratio
+      const e0 = candidates.find(c => c.L === 0);
+      const e100 = candidates.find(c => c.L === 100);
+      chosen = (e0 && e100) ? (e0.ratio >= e100.ratio ? e0 : e100) : (e0 || e100);
+    }
+
+    const suggestedLightness = chosen ? chosen.L : currentTextLightness;
+
+    // Find closest predefined lightness value
+    const lightnessOptions = [0, 4, 8, 16, 20, 24, 28, 32, 36, 40, 45, 64, 70, 78, 80, 82, 84, 86, 88, 90, 92, 94, 95, 96, 98, 100];
+    const closestLightness = lightnessOptions.reduce((prev, curr) =>
+      Math.abs(curr - suggestedLightness) < Math.abs(prev - suggestedLightness) ? curr : prev
+    );
+
+    // Get original lightness values for the other mode
+    const originalValues = type === 'alt' ?
+      (prefersDark ?
+        { "original": 84, "plus-max": 78, "plus-eight": 70, "plus-seven": 64, "plus-six": 96, "plus-five": 86, "plus-four": 92, "plus-three": 98, "plus-two": 92, "plus-one": 98, "base": 84, "minus-one": 90, "minus-two": 92, "minus-three": 96, "minus-four": 2, "minus-five": 20, "minus-six": 26, "minus-seven": 34, "minus-eight": 38, "minus-max": 38 }[step] :
+        { "original": 88, "plus-max": 20, "plus-eight": 24, "plus-seven": 28, "plus-six": 26, "plus-five": 40, "plus-four": 4, "plus-three": 10, "plus-two": 6, "plus-one": 95, "base": 88, "minus-one": 82, "minus-two": 78, "minus-three": 74, "minus-four": 72, "minus-five": 78, "minus-six": 82, "minus-seven": 84, "minus-eight": 86, "minus-max": 88 }[step]) :
+      (prefersDark ?
+        { "original": 100, "plus-max": 100, "plus-eight": 88, "plus-seven": 80, "plus-six": 72, "plus-five": 72, "plus-four": 80, "plus-three": 78, "plus-two": 80, "plus-one": 80, "base": 100, "minus-one": 98, "minus-two": 98, "minus-three": 98, "minus-four": 2, "minus-five": 2, "minus-six": 8, "minus-seven": 8, "minus-eight": 4, "minus-max": 0 }[step] :
+        { "original": 100, "plus-max": 0, "plus-eight": 4, "plus-seven": 8, "plus-six": 16, "plus-five": 20, "plus-four": 24, "plus-three": 20, "plus-two": 16, "plus-one": 100, "base": 100, "minus-one": 94, "minus-two": 90, "minus-three": 86, "minus-four": 84, "minus-five": 88, "minus-six": 94, "minus-seven": 96, "minus-eight": 98, "minus-max": 100 }[step]);
+
+    // Create new light-dark value
+    const newValue = prefersDark ?
+      `light-dark(hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${originalValues}%), hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${closestLightness}%))` :
+      `light-dark(hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${closestLightness}%), hsl(var(--op-color-${scalePrefix}-h) var(--op-color-${scalePrefix}-s) ${originalValues}%))`;
+
+    // Update the CSS variable
+    const varName = `--op-color-${scalePrefix}-on-${step}${type === 'alt' ? '-alt' : ''}`;
+    document.documentElement.style.setProperty(varName, newValue);
+
+    // Store the updated lightness values
+    const key = `${scalePrefix}-${step}-${type}`;
+    const prev = updatedLightnessValues[key];
+    const prevLight = prev && typeof prev.light === 'number' ? prev.light : (type === 'alt' ? (prefersDark ? defAltLightLight[step] : defAltLightLight[step]) : (prefersDark ? defOnLightLight[step] : defOnLightLight[step]));
+    const prevDark = prev && typeof prev.dark === 'number' ? prev.dark : (type === 'alt' ? (prefersDark ? defAltLightDark[step] : defAltLightDark[step]) : (prefersDark ? defOnLightDark[step] : defOnLightDark[step]));
+
+    if (prefersDark) {
+      updatedLightnessValues[key] = {
+        light: prev ? prev.light : prevLight,
+        dark: suggestedLightness,
+        updated: Date.now()
+      };
+    } else {
+      updatedLightnessValues[key] = {
+        light: suggestedLightness,
+        dark: prev ? prev.dark : prevDark,
+        updated: Date.now()
+      };
+    }
+    saveOverridesToStorage();
+    saveOverridesToStorage();
+
+    // Update accessibility indicators immediately
+    updateAccessibilityIndicators(scalePrefix, step);
+
+    console.log(`Fixed accessibility for ${scalePrefix}-${step}-${type}: ${closestLightness}% lightness`);
+
+  } catch (error) {
+    console.warn(`Failed to fix accessibility for ${scalePrefix}-${step}-${type}:`, error);
   }
 }
 
@@ -583,16 +821,23 @@ function rgbToLightness(rgb) {
 
 // Get scale HSL from computed styles
 function getScaleHSL(scalePrefix) {
+  if (!scalePrefix) {
+    return null;
+  }
+
   const computedStyle = getComputedStyle(document.documentElement);
-  const h = parseInt(
-    computedStyle.getPropertyValue(`--op-color-${scalePrefix}-h`).trim()
-  );
-  const s = parseInt(
-    computedStyle.getPropertyValue(`--op-color-${scalePrefix}-s`).trim()
-  );
-  const l = parseInt(
-    computedStyle.getPropertyValue(`--op-color-${scalePrefix}-l`).trim()
-  );
+  const hValue = computedStyle.getPropertyValue(`--op-color-${scalePrefix}-h`).trim();
+  const sValue = computedStyle.getPropertyValue(`--op-color-${scalePrefix}-s`).trim();
+  const lValue = computedStyle.getPropertyValue(`--op-color-${scalePrefix}-l`).trim();
+
+  const h = parseInt(hValue);
+  const s = parseInt(sValue);
+  const l = parseInt(lValue);
+
+  if (isNaN(h) || isNaN(s) || h === null || h === undefined || s === null || s === undefined) {
+    return null;
+  }
+
   return { h, s, l };
 }
 
@@ -635,12 +880,8 @@ function generateColorVariables() {
 // Watch for changes in root variables
 function watchForVariableChanges() {
   const observer = new MutationObserver(() => {
-    // Regenerate variables and update accessibility when styles change
-    setTimeout(() => {
-      generateColorVariables();
-      generateAllColorVariables(); // Regenerate all color variables
-      updateAllAccessibilityIndicators();
-    }, 100);
+    // Batch updates when styles change
+    scheduleUpdate({ regenerateVars: true, updateIndicators: true });
   });
 
   observer.observe(document.documentElement, {
@@ -658,18 +899,28 @@ function watchForVariableChanges() {
     const result = originalSetProperty.call(this, property, value, priority);
     if (
       property.startsWith("--op-color-") &&
-      (property.includes("-h") ||
-        property.includes("-s") ||
-        property.includes("-l"))
+      (property.includes("-h") || property.includes("-s") || property.includes("-l"))
     ) {
-      setTimeout(() => {
-        generateColorVariables();
-        generateAllColorVariables(); // Regenerate all color variables
-        updateAllAccessibilityIndicators(); // Update accessibility indicators
-      }, 100);
+      scheduleUpdate({ regenerateVars: true, updateIndicators: true });
     }
     return result;
   };
+}
+
+// React to system theme changes (light/dark)
+function setupThemeChangeListener() {
+  try {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      // Batch updates for new scheme flip
+      scheduleUpdate({ regenerateVars: true, updateIndicators: true });
+    };
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handleChange);
+    } else if (typeof mql.addListener === 'function') {
+      mql.addListener(handleChange);
+    }
+  } catch (_) { }
 }
 
 // Generate CSS classes first
@@ -678,6 +929,88 @@ generateColorClasses();
 // Generate all color variables
 generateAllColorVariables();
 
+// Load and apply overrides immediately
+loadOverridesFromStorage();
+applyOverridesToCSS();
+
+// Initialize HSL controls (prepopulate from CSS or storage) after arrays are defined
+
+// HSL input controls persistence
+const HSL_STORAGE_KEY = 'opticsHSLBaseValues';
+const hslInputs = [
+  { idH: 'hsl-primary-h', idS: 'hsl-primary-s', idL: 'hsl-primary-l', prefix: 'primary' },
+  { idH: 'hsl-neutral-h', idS: 'hsl-neutral-s', idL: 'hsl-neutral-l', prefix: 'neutral' },
+  { idH: 'hsl-alerts-warning-h', idS: 'hsl-alerts-warning-s', idL: 'hsl-alerts-warning-l', prefix: 'alerts-warning' },
+  { idH: 'hsl-alerts-danger-h', idS: 'hsl-alerts-danger-s', idL: 'hsl-alerts-danger-l', prefix: 'alerts-danger' },
+  { idH: 'hsl-alerts-info-h', idS: 'hsl-alerts-info-s', idL: 'hsl-alerts-info-l', prefix: 'alerts-info' },
+  { idH: 'hsl-alerts-notice-h', idS: 'hsl-alerts-notice-s', idL: 'hsl-alerts-notice-l', prefix: 'alerts-notice' },
+];
+
+function loadHSLFromStorage() {
+  try {
+    const raw = localStorage.getItem(HSL_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch (_) { return {}; }
+}
+
+function saveHSLToStorage(values) {
+  try { localStorage.setItem(HSL_STORAGE_KEY, JSON.stringify(values)); } catch (_) { }
+}
+
+function initHSLControls() {
+  const stored = loadHSLFromStorage();
+  // Apply any stored HSL values to CSS variables on load so UI matches persisted state
+  Object.keys(stored).forEach((prefix) => {
+    const v = stored[prefix];
+    if (!v) return;
+    if (typeof v.h === 'number') {
+      document.documentElement.style.setProperty(`--op-color-${prefix}-h`, `${v.h}`);
+    }
+    if (typeof v.s === 'number') {
+      document.documentElement.style.setProperty(`--op-color-${prefix}-s`, `${v.s}%`);
+    }
+    if (typeof v.l === 'number') {
+      document.documentElement.style.setProperty(`--op-color-${prefix}-l`, `${v.l}%`);
+    }
+  });
+  // After applying stored values, schedule a refresh
+  if (Object.keys(stored).length) {
+    scheduleUpdate({ regenerateVars: true, updateIndicators: true });
+  }
+  hslInputs.forEach(({ idH, idS, idL, prefix }) => {
+    const elH = document.getElementById(idH);
+    const elS = document.getElementById(idS);
+    const elL = document.getElementById(idL);
+    if (!elH || !elS || !elL) return;
+    const cur = stored[prefix] || {};
+    // Fallback to current CSS vars if no stored
+    const live = getScaleHSL(prefix) || { h: 0, s: 0, l: 0 };
+    elH.value = typeof cur.h === 'number' ? cur.h : live.h;
+    elS.value = typeof cur.s === 'number' ? cur.s : live.s;
+    elL.value = typeof cur.l === 'number' ? cur.l : live.l;
+
+    const handleChange = () => {
+      const values = loadHSLFromStorage();
+      values[prefix] = {
+        h: Math.max(0, Math.min(360, parseInt(elH.value || '0'))),
+        s: Math.max(0, Math.min(100, parseInt(elS.value || '0'))),
+        l: Math.max(0, Math.min(100, parseInt(elL.value || '0'))),
+      };
+      saveHSLToStorage(values);
+      // Apply to CSS vars
+      document.documentElement.style.setProperty(`--op-color-${prefix}-h`, `${values[prefix].h}`);
+      document.documentElement.style.setProperty(`--op-color-${prefix}-s`, `${values[prefix].s}%`);
+      document.documentElement.style.setProperty(`--op-color-${prefix}-l`, `${values[prefix].l}%`);
+      // Batch refresh
+      scheduleUpdate({ regenerateVars: true, updateIndicators: true });
+    };
+    elH.addEventListener('input', handleChange);
+    elS.addEventListener('input', handleChange);
+    elL.addEventListener('input', handleChange);
+  });
+}
+
 // Populate all color grids
 Object.keys(colorScales).forEach((scaleKey) => {
   populateColorGrid(scaleKey);
@@ -685,10 +1018,11 @@ Object.keys(colorScales).forEach((scaleKey) => {
 
 // Setup variable generation and watching
 setTimeout(() => {
-  generateColorVariables();
-  generateAllColorVariables(); // Ensure all color variables are generated
-  updateAllAccessibilityIndicators(); // Update accessibility indicators
+  // Schedule initial full refresh instead of immediate heavy calls
+  scheduleUpdate({ regenerateVars: true, updateIndicators: true });
   watchForVariableChanges();
+  setupThemeChangeListener();
+  initHSLControls();
 }, 500);
 
 // Copy variables function
@@ -731,8 +1065,8 @@ function copyVariables() {
     });
 }
 
-// Generate and download JSON tokens file
-function generateAndDownloadJSON() {
+// Build tokens JSON from current UI state (HSL + overrides)
+function buildTokensJSON() {
   // Helper function to get live HSL values from CSS
   function getLiveHSLValues(scalePrefix) {
     const computedStyle = getComputedStyle(document.documentElement);
@@ -1567,8 +1901,15 @@ function generateAndDownloadJSON() {
     },
   ];
 
-  // Create and download the JSON file
+  return output;
+}
+
+// Generate and download JSON tokens file
+function generateAndDownloadJSON() {
+  const output = buildTokensJSON();
   const jsonString = JSON.stringify(output, null, 2);
+
+  // Create and download the JSON file
   const blob = new Blob([jsonString], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 
@@ -1590,4 +1931,17 @@ function generateAndDownloadJSON() {
     button.textContent = originalText;
     button.style.background = "#007bff";
   }, 2000);
+}
+
+// Preview JSON in the variables output pane
+function previewJSON() {
+  try {
+    const data = buildTokensJSON();
+    const output = document.getElementById('color-variables-output');
+    if (output) {
+      output.textContent = JSON.stringify(data, null, 2);
+    }
+  } catch (e) {
+    console.warn('Failed to preview JSON', e);
+  }
 }

@@ -1,13 +1,19 @@
 :root {
   --grid-column: calc(var(--op-size-unit) * 40);
+  --op-font-family: 'Space Grotesk', sans-serif;
+  --op-font-weight-normal: 400;
+  --op-font-weight-medium: 500;
+  --op-font-weight-semi-bold: 600;
+  --op-font-weight-bold: 700;
+  --op-font-weight-extra-bold: 800;
+  --op-font-weight-black: 900;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    sans-serif;
+  font-family: var(--op-font-family);
   margin: 0;
   padding: var(--op-space-medium);
-  background-color: var(--op-color-background);
+  background-color: lch(from var(--op-color-background) calc(l + 10) c h);
 }
 
 h1 {
@@ -102,18 +108,30 @@ h1 {
 
 /* Accessibility level colors */
 .accessibility-indicator.level-aaa {
-  background-color: #28a745;
-  color: white;
+  color: #28a745;
+  background-color: color-mix(
+    in srgb,
+    var(--op-color-background) 95%,
+    transparent
+  );
 }
 
 .accessibility-indicator.level-aa {
-  background-color: #ffc107;
-  color: #212529;
+  color: #ffc107;
+  background-color: color-mix(
+    in srgb,
+    var(--op-color-background) 95%,
+    transparent
+  );
 }
 
 .accessibility-indicator.level-fail {
-  background-color: #dc3545;
-  color: white;
+  color: #dc3545;
+  background-color: color-mix(
+    in srgb,
+    var(--op-color-background) 95%,
+    transparent
+  );
 }
 
 .on-indicator {
@@ -125,18 +143,24 @@ h1 {
   opacity: 0.9;
 }
 
+.accessibility-indicator:hover {
+  transform: scale(1.05);
+  transition: transform 0.1s ease;
+}
+
 .color-info {
   padding: var(--op-space-x-small) var(--op-space-small);
-  background: rgba(255, 255, 255, 0.95);
+  background: color-mix(in srgb, var(--op-color-background) 95%, transparent);
   font-size: var(--op-font-2x-small);
-  color: #333;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--op-color-on-background);
+  border-top: 1px solid
+    color-mix(in srgb, var(--op-color-background) 10%, transparent);
 }
 
 /* Color classes will be generated dynamically by JavaScript */
 
 .variables-section {
-  background: white;
+  background: var(--op-color-background);
   padding: var(--op-space-x-large);
   border-radius: var(--op-space-small);
   margin-bottom: var(--op-space-3x-large);
@@ -183,4 +207,47 @@ h1 {
   white-space: pre-wrap;
   margin: 0;
   position: relative;
+}
+
+.color-scale-section {
+  margin-bottom: var(--op-space-3x-large);
+}
+
+/* HSL Controls */
+.hsl-controls {
+  background: var(--op-color-background);
+  padding: var(--op-space-small);
+  border-radius: var(--op-radius-large);
+  box-shadow: var(--op-shadow-x-small);
+  margin: var(--op-space-x-small) auto var(--op-space-large);
+  max-width: 1400px;
+}
+.hsl-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--op-space-small);
+}
+.hsl-row {
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-items: start;
+  text-align: left;
+  gap: var(--op-space-small);
+}
+.hsl-row input {
+  padding: 6px 8px;
+  border: 1px solid var(--op-color-border);
+  border-radius: 6px;
+}
+.hsl-row h3 {
+  flex: 1;
+}
+
+.hsl-group {
+  display: flex;
+  flex: 0 0 15%;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--op-space-x-small);
 }

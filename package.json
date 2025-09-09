@@ -6,7 +6,8 @@
   "scripts": {
     "generate": "node generate-tokens.js",
     "start": "node generate-tokens.js",
-    "dev": "node generate-tokens.js"
+    "dev": "node generate-tokens.js",
+    "serve": "python3 -m http.server 8000"
   },
   "keywords": [
     "design-system",
@@ -27,5 +28,8 @@
   ],
   "engines": {
     "node": ">=14"
+  },
+  "dependencies": {
+    "a11y-contrast-color": "^1.1.0"
   }
 }

@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Optics Color Tokens</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@rolemodel/optics@latest/dist/css/optics.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Space+Grotesk:wght@300..700&display=swap"
+    rel="stylesheet">
+
   <link rel="stylesheet" href="/styles.css" />
 
   <style>
@@ -12,7 +18,7 @@
       /**
         * Adjust these...
         **/
-      --op-color-primary-h: 210;
+      --op-color-primary-h: 170;
       --op-color-primary-s: 48%;
       --op-color-primary-l: 38%;
 
@@ -35,6 +41,7 @@
       --op-color-alerts-notice-h: 130;
       --op-color-alerts-notice-s: 61%;
       --op-color-alerts-notice-l: 64%;
+
     }
   </style>
 </head>
@@ -42,49 +49,150 @@
 <body>
   <h1>Optics Design System - Color Tokens Grid</h1>
 
+
   <!-- Primary Scale -->
+
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Primary Scale</h3>
+      <div class="hsl-group">
+        <label>Primary H</label>
+        <input id="hsl-primary-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-primary-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-primary-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Primary Scale</h2>
     <div class="color-grid" id="primary-grid">
       <!-- Primary colors will be inserted here -->
     </div>
   </div>
-
   <!-- Neutral Scale -->
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Neutral Scale</h3>
+      <div class="hsl-group">
+        <label>Neutral H</label>
+        <input id="hsl-neutral-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-neutral-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-neutral-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Neutral Scale</h2>
     <div class="color-grid" id="neutral-grid">
       <!-- Neutral colors will be inserted here -->
     </div>
   </div>
+  </div>
 
   <!-- Warning Scale -->
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Warning Scale</h3>
+      <div class="hsl-group">
+        <label>Warning H</label>
+        <input id="hsl-alerts-warning-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-alerts-warning-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-alerts-warning-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Warning Scale</h2>
     <div class="color-grid" id="warning-grid">
       <!-- Warning colors will be inserted here -->
     </div>
   </div>
 
   <!-- Danger Scale -->
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Danger Scale</h3>
+      <div class="hsl-group">
+        <label>Danger H</label>
+        <input id="hsl-alerts-danger-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-alerts-danger-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-alerts-danger-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Danger Scale</h2>
     <div class="color-grid" id="danger-grid">
       <!-- Danger colors will be inserted here -->
     </div>
   </div>
 
   <!-- Info Scale -->
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Info Scale</h3>
+      <div class="hsl-group">
+        <label>Info H</label>
+        <input id="hsl-alerts-info-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-alerts-info-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-alerts-info-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Info Scale</h2>
     <div class="color-grid" id="info-grid">
       <!-- Info colors will be inserted here -->
     </div>
   </div>
 
+
   <!-- Notice Scale -->
+  <div class="hsl-controls">
+    <div class="hsl-row">
+      <h3>Notice Scale</h3>
+      <div class="hsl-group">
+        <label>Notice H</label>
+        <input id="hsl-alerts-notice-h" type="number" min="0" max="360" />
+      </div>
+      <div class="hsl-group">
+        <label>S %</label>
+        <input id="hsl-alerts-notice-s" type="number" min="0" max="100" />
+      </div>
+      <div class="hsl-group">
+        <label>L %</label>
+        <input id="hsl-alerts-notice-l" type="number" min="0" max="100" />
+      </div>
+    </div>
+  </div>
   <div class="color-scale-section">
-    <h2 class="scale-title">Notice Scale</h2>
+
     <div class="color-grid" id="notice-grid">
       <!-- Notice colors will be inserted here -->
     </div>
@@ -103,6 +211,9 @@
       </button>
       <button class="copy-button" onclick="generateAndDownloadJSON()" style="right: 160px">
         Download JSON
+      </button>
+      <button class="copy-button" onclick="previewJSON()" style="right: 320px">
+        Preview JSON
       </button>
       <pre id="color-variables-output" class="variables-output">
 Generating variables...</pre>
