@@ -4,10 +4,9 @@
   "description": "Auto-generating Optics Design System color tokens from HSL values",
   "main": "index.html",
   "scripts": {
-    "generate": "node generate-tokens.js",
-    "start": "node generate-tokens.js",
-    "dev": "node generate-tokens.js",
-    "serve": "python3 -m http.server 8000"
+    "start": "serve -l 3000 .",
+    "dev": "serve -l 3000 .",
+    "serve": "serve -l 3000 ."
   },
   "keywords": [
     "design-system",
@@ -28,6 +27,7 @@
     "node": ">=14"
   },
   "dependencies": {
-    "a11y-contrast-color": "^1.1.0"
+    "a11y-contrast-color": "^1.1.0",
+    "serve": "^14.2.1"
   }
 }
