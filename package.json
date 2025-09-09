@@ -2,14 +2,7 @@
   "name": "optics-color-tokens",
   "version": "1.0.0",
   "description": "Simple setup to serve HTML and JavaScript in CodeSandbox",
-  "main": "index.js",
+  "main": "index.html",
   "private": true,
-  "packageManager": "npm@10",
-  "scripts": {
-    "start": "node ./node_modules/serve/bin/serve.js -n -s -l ${PORT:-3000} .",
-    "dev": "node ./node_modules/serve/bin/serve.js -n -s -l 3000 ."
-  },
-  "dependencies": {
-    "serve": "^14.2.1"
-  }
+  "packageManager": "npm@10"
 }
