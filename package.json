@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Simple setup to serve HTML and JavaScript in CodeSandbox",
   "main": "index.js",
+  "private": true,
+  "packageManager": "npm@10",
   "scripts": {
-    "start": "live-server --port=3000 --open=./index.html"
+    "start": "node ./node_modules/serve/bin/serve.js -n -s -l ${PORT:-3000} .",
+    "dev": "node ./node_modules/serve/bin/serve.js -n -s -l 3000 ."
   },
-  "dependencies": {},
-  "devDependencies": {
-    "live-server": "^1.2.2"
+  "dependencies": {
+    "serve": "^14.2.1"
   }
 }
