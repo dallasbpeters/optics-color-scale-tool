@@ -1,16 +1,13 @@
 {
   "name": "optics-color-tokens",
   "version": "1.0.0",
-  "description": "A simple HTML and JavaScript project",
+  "description": "Simple setup to serve HTML and JavaScript in CodeSandbox",
   "main": "index.js",
   "scripts": {
-    "start": "live-server"
+    "start": "live-server --port=3000 --open=./index.html"
   },
-  "dependencies": {
-    "live-server": "^1.2.1"
-  },
-  "devDependencies": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
 }
