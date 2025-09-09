@@ -18,6 +18,8 @@
     "css-variables"
   ],
   "author": "Your Name",
+  "private": true,
+  "packageManager": "npm@10",
   "license": "MIT",
   "files": [
     "index.html",
