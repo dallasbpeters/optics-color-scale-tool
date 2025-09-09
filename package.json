@@ -4,9 +4,9 @@
   "description": "Auto-generating Optics Design System color tokens from HSL values",
   "main": "index.html",
   "scripts": {
-    "start": "serve -s -l $PORT .",
-    "dev": "serve -s -l $PORT .",
-    "serve": "serve -s -l $PORT ."
+    "start": "serve -s -l 3000 .",
+    "dev": "serve -s -l 3000 .",
+    "serve": "serve -s -l 3000 ."
   },
   "keywords": [
     "design-system",
