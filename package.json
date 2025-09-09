@@ -1,35 +1,16 @@
 {
   "name": "optics-color-tokens",
   "version": "1.0.0",
-  "description": "Auto-generating Optics Design System color tokens from HSL values",
-  "main": "index.html",
+  "description": "A simple HTML and JavaScript project",
+  "main": "index.js",
   "scripts": {
-    "start": "serve -s -l 3000 .",
-    "dev": "serve -s -l 3000 .",
-    "serve": "serve -s -l 3000 ."
-  },
-  "keywords": [
-    "design-system",
-    "color-tokens",
-    "optics",
-    "figma",
-    "tokens",
-    "hsl",
-    "css-variables"
-  ],
-  "author": "Your Name",
-  "private": true,
-  "packageManager": "npm@10",
-  "license": "MIT",
-  "files": [
-    "index.html",
-    "export.json"
-  ],
-  "engines": {
-    "node": ">=14"
+    "start": "live-server"
   },
   "dependencies": {
-    "a11y-contrast-color": "^1.1.0",
-    "serve": "^14.2.1"
-  }
+    "live-server": "^1.2.1"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
