@@ -2,7 +2,7 @@
   "name": "optics-color-tokens",
   "version": "1.0.0",
   "description": "Auto-generating Optics Design System color tokens from HSL values",
-  "main": "generate-tokens.js",
+  "main": "index.html",
   "scripts": {
     "generate": "node generate-tokens.js",
     "start": "node generate-tokens.js",
@@ -21,8 +21,6 @@
   "author": "Your Name",
   "license": "MIT",
   "files": [
-    "generate-tokens.js",
-    "auto-generate.html",
     "index.html",
     "export.json"
   ],
